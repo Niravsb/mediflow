@@ -1,0 +1,28 @@
+service: hms-email-service
+
+provider:
+  name: aws
+  runtime: python3.9
+  environment:
+    SMTP_USER: ${env:SMTP_USER}
+    SMTP_PASS: ${env:SMTP_PASS}
+
+functions:
+  signupWelcome:
+    handler: handler.signup_welcome
+    events:
+      - http:
+          path: email/signup-welcome
+          method: post
+          cors: true
+
+  bookingConfirmation:
+    handler: handler.booking_confirmation
+    events:
+      - http:
+          path: email/booking-confirmation
+          method: post
+          cors: true
+
+plugins:
+  - serverless-offline

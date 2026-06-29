@@ -1,0 +1,9 @@
+{
+  "name": "hms-email-service",
+  "version": "1.0.0",
+  "description": "HMS email notification service (Serverless + Python)",
+  "devDependencies": {
+    "serverless": "^3.0.0",
+    "serverless-offline": "^12.0.0"
+  }
+}

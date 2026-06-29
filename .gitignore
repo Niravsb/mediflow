@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Django
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+*.log
+
+# Environment variables — NEVER commit these
+.env
+.env.*
+!.env.example
+
+# Google OAuth credentials — NEVER commit these
+client_secret.json
+credentials.json
+token.json
+*_token.json
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (email-service)
+email-service/node_modules/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid

@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Patient Dashboard — MediFlow{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+  <div>
+    <h1>Hello, {{ user.first_name|default:user.username }} 👋</h1>
+    <p>Browse available doctors and book your next appointment in seconds</p>
+  </div>
+  {% if not user.calendar_token %}
+    <a href="{% url 'google_calendar_connect' %}" class="btn btn-ghost" style="gap:6px; border-color:rgba(79,142,247,0.3);">
+      📅 Connect Google Calendar
+    </a>
+  {% else %}
+    <span class="nav-badge" style="padding:.5rem 1rem;">📅 Calendar Syncing</span>
+  {% endif %}
+</div>
+
+<!-- My Appointments -->
+{% if appointments %}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">
+      <div class="card-icon teal">🗓</div>
+      My Appointments
+    </div>
+    <span class="badge badge-blue">{{ appointments|length }} booked</span>
+  </div>
+  {% for appt in appointments %}
+    <div class="appt-row">
+      <div style="flex:1;">
+        <div class="appt-doctor">Dr. {{ appt.slot.doctor.last_name }}{% if appt.slot.doctor.first_name %}, {{ appt.slot.doctor.first_name }}{% endif %}</div>
+        <div class="appt-time">{{ appt.slot.start_time|time:"H:i" }} – {{ appt.slot.end_time|time:"H:i" }}</div>
+        {% if appt.notes %}
+          <div class="text-muted text-sm" style="margin-top:0.25rem; font-style:italic;">Reason: "{{ appt.notes }}"</div>
+        {% endif %}
+      </div>
+      <div style="display:flex; align-items:center; gap:1rem;">
+        <div class="appt-date">{{ appt.slot.date }}</div>
+        <form method="post" action="{% url 'cancel_appointment' appt.pk %}" onsubmit="return confirm('Are you sure you want to cancel this appointment?')">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm" style="padding:0.35rem 0.65rem;">Cancel</button>
+        </form>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Available Doctors -->
+<div class="card">
+  <div class="card-header" style="margin-bottom:0.75rem;">
+    <div class="card-title">
+      <div class="card-icon blue">🩺</div>
+      Available Doctors
+    </div>
+    {% if doctors %}
+      <span class="badge badge-green">{{ doctors|length }} available</span>
+    {% endif %}
+  </div>
+
+  <!-- Search & Filter Bar -->
+  <form method="get" style="display:flex; gap:0.75rem; margin-bottom:1.5rem; flex-wrap:wrap; background:var(--bg2); padding:1rem; border-radius:var(--radius-sm); border:1px solid var(--border);">
+    <div style="flex:1; min-width:200px;">
+      <label for="search-q" class="form-label" style="font-size:0.75rem; color:var(--text3); text-transform:uppercase; margin-bottom:0.25rem;">Search Doctor</label>
+      <input type="text" id="search-q" name="q" value="{{ q|default:'' }}" placeholder="Search by name..." class="form-control" style="padding:0.5rem 0.75rem;">
+    </div>
+    <div style="width:180px;">
+      <label for="filter-date" class="form-label" style="font-size:0.75rem; color:var(--text3); text-transform:uppercase; margin-bottom:0.25rem;">Filter Date</label>
+      <input type="date" id="filter-date" name="date" value="{{ date|default:'' }}" class="form-control" style="padding:0.5rem 0.75rem;">
+    </div>
+    <div style="display:flex; align-items:flex-end; gap:0.5rem;">
+      <button type="submit" class="btn btn-primary" style="padding:0.5rem 1rem;">Apply Filters</button>
+      {% if q or date %}
+        <a href="{% url 'patient_dashboard' %}" class="btn btn-ghost" style="padding:0.5rem 1rem;">Clear</a>
+      {% endif %}
+    </div>
+  </form>
+
+  {% if doctors %}
+    <div class="doctor-grid">
+      {% for doctor in doctors %}
+      <div class="doctor-card">
+        <div class="doctor-card-header">
+          <div class="doctor-info">
+            <div class="doctor-avatar">
+              {{ doctor.first_name|first|upper }}{{ doctor.last_name|first|upper }}
+            </div>
+            <div>
+              <div class="doctor-name">Dr. {{ doctor.last_name }}{% if doctor.first_name %}, {{ doctor.first_name }}{% endif %}</div>
+              <div class="doctor-meta">{{ doctor.available_count }} slot{{ doctor.available_count|pluralize }} available</div>
+            </div>
+          </div>
+          <span class="badge badge-green">Available</span>
+        </div>
+
+        <div class="doctor-card-body">
+          <div class="slot-grid">
+            {% for slot in doctor.slots.all %}
+              {% if slot.is_available %}
+              <div class="slot-pill">
+                <span>🕐</span>
+                <span class="slot-time">{{ slot.date }} &nbsp; {{ slot.start_time|time:"H:i" }}–{{ slot.end_time|time:"H:i" }}</span>
+                <button class="btn btn-primary btn-sm" type="button" onclick='openBookingModal("{{ slot.pk }}", "Dr. {{ doctor.last_name }}", "{{ slot.date }}", "{{ slot.start_time|time:"H:i" }}–{{ slot.end_time|time:"H:i" }}", "{% url "book_slot" slot.pk %}")'>Book</button>
+              </div>
+
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="emoji">😴</div>
+      <p>No doctors with matching available slots right now. Try clearing filters or checking back later!</p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Booking Modal -->
+<div id="booking-modal" style="display:none; position:fixed; inset:0; z-index:1000; background:rgba(11,15,26,0.7); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:1rem;">
+  <div class="card" style="max-width:480px; width:100%; margin:0; box-shadow:var(--shadow); background:var(--surface);">
+    <div class="card-header" style="margin-bottom:1rem; padding-bottom:0.75rem;">
+      <div class="card-title">
+        <div class="card-icon blue">📝</div>
+        Complete Your Booking
+      </div>
+      <button type="button" onclick="closeBookingModal()" style="background:none; border:none; color:var(--text3); font-size:1.25rem; cursor:pointer;">✕</button>
+    </div>
+    <form id="booking-form" method="post" action="">
+      {% csrf_token %}
+      <div class="field" style="margin-bottom:1rem;">
+        <label class="form-label" style="font-size:0.75rem; color:var(--text3); text-transform:uppercase; margin-bottom:0.25rem;">Selected Slot</label>
+        <div id="modal-slot-details" style="background:var(--bg2); padding:0.75rem; border-radius:var(--radius-sm); border:1px solid var(--border); font-size:0.875rem; color:var(--text); line-height:1.4;"></div>
+      </div>
+      <div class="field" style="margin-bottom:1.25rem;">
+        <label for="visit-notes" class="form-label" style="font-size:0.75rem; color:var(--text3); text-transform:uppercase; margin-bottom:0.25rem;">Reason for Visit (Optional)</label>
+        <textarea id="visit-notes" name="notes" placeholder="E.g., General health consultation, fever/cough, prescription refill..." rows="3" class="form-control" style="resize:vertical; background:var(--bg2); border-color:var(--border);"></textarea>
+      </div>
+      <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
+        <button type="submit" class="btn btn-primary" style="flex:1; justify-content:center;">Confirm Booking</button>
+        <button type="button" onclick="closeBookingModal()" class="btn btn-ghost">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openBookingModal(slotId, doctorName, date, time, bookUrl) {
+    const modal = document.getElementById('booking-modal');
+    const details = document.getElementById('modal-slot-details');
+    const form = document.getElementById('booking-form');
+    
+    details.innerHTML = `<strong>Doctor:</strong> ${doctorName}<br><strong>Schedule:</strong> ${date} at ${time}`;
+    form.action = bookUrl;
+    
+    modal.style.display = 'flex';
+  }
+  
+  function closeBookingModal() {
+    document.getElementById('booking-modal').style.display = 'none';
+  }
+  
+  // Close modal when clicking outside of it
+  window.onclick = function(event) {
+    const modal = document.getElementById('booking-modal');
+    if (event.target == modal) {
+      closeBookingModal();
+    }
+  }
+  
+  // Close modal on Escape key press
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeBookingModal();
+  });
+</script>
+{% endblock %}

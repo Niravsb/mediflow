@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Add Availability Slot — MediFlow{% endblock %}
+
+{% block content %}
+<div style="max-width: 520px; margin: 0 auto;">
+  <div class="page-header">
+    <h1>Add Availability Slot</h1>
+    <p>Set a time window when patients can book an appointment with you</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-icon blue">🗓</div>
+        Slot Details
+      </div>
+    </div>
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-error" style="margin-bottom:1.25rem;">
+        ✕ <span>{% for e in form.non_field_errors %}{{ e }}{% endfor %}</span>
+      </div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="field">
+          <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <div style="display:flex; gap:.75rem; margin-top:1.25rem;">
+        <button class="btn btn-primary" type="submit" style="flex:1; justify-content:center; padding:.7rem;">
+          ✓ Create Slot
+        </button>
+        <a href="{% url 'slot_list' %}" class="btn btn-ghost" style="padding:.7rem 1.2rem;">Cancel</a>
+      </div>
+    </form>
+  </div>
+
+  <p class="text-muted text-sm" style="text-align:center; margin-top:.75rem;">
+    Slots must be in the future · Overlapping slots are not allowed
+  </p>
+</div>
+{% endblock %}

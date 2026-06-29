@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Sign In — MediFlow{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    {% load static %}
+    <div class="auth-logo">
+      <img src="{% static 'core/logo.png' %}" alt="MediFlow">
+      <span class="brand-name" style="font-size:1.5rem;">MediFlow</span>
+    </div>
+
+    <h1 class="auth-title">Welcome back</h1>
+    <p class="auth-subtitle">Sign in to access your healthcare dashboard</p>
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-error" style="margin-bottom:1rem;">
+        ✕ <span>{% for e in form.non_field_errors %}{{ e }}{% endfor %}</span>
+      </div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="field">
+          <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+          {% endif %}
+        </div>
+      {% endfor %}
+      <button class="btn btn-primary" type="submit" style="width:100%; justify-content:center; padding:.7rem; margin-top:.5rem;">
+        Sign In →
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      No account? <a href="{% url 'signup_patient' %}">Sign up as Patient</a>
+      &nbsp;·&nbsp;
+      <a href="{% url 'signup_doctor' %}">Sign up as Doctor</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

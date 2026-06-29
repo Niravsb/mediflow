@@ -1,0 +1,637 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MediFlow — Intelligent hospital appointment scheduling platform">
+  <title>{% block title %}MediFlow{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0b0f1a;
+      --bg2:         #111827;
+      --surface:     #1a2236;
+      --surface2:    #202d45;
+      --border:      rgba(255,255,255,0.07);
+      --border2:     rgba(255,255,255,0.12);
+      --primary:     #4f8ef7;
+      --primary-dk:  #3a72d8;
+      --primary-glow:rgba(79,142,247,0.25);
+      --teal:        #2dd4bf;
+      --teal-dk:     #14b8a6;
+      --danger:      #f87171;
+      --danger-dk:   #dc2626;
+      --success:     #4ade80;
+      --warning:     #fbbf24;
+      --text:        #e8edf5;
+      --text2:       #9ca8bc;
+      --text3:       #6b7895;
+      --radius:      12px;
+      --radius-sm:   8px;
+      --shadow:      0 4px 24px rgba(0,0,0,0.4);
+      --shadow-sm:   0 2px 8px rgba(0,0,0,0.3);
+      --transition:  0.2s ease;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(79,142,247,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(45,212,191,0.07) 0%, transparent 60%);
+    }
+
+    /* ─── Navbar ────────────────────────────────────────────── */
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(11,15,26,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .navbar-brand img {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    .brand-name {
+      font-size: 1.25rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #4f8ef7, #2dd4bf);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.3px;
+    }
+    .brand-tagline {
+      font-size: 0.65rem;
+      color: var(--text3);
+      font-weight: 400;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-top: -2px;
+    }
+
+    .navbar-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .nav-link {
+      color: var(--text2);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 0.4rem 0.85rem;
+      border-radius: 8px;
+      transition: all var(--transition);
+      border: 1px solid transparent;
+    }
+    .nav-link:hover {
+      color: var(--text);
+      background: var(--surface);
+      border-color: var(--border);
+    }
+    .nav-link.active {
+      color: var(--primary);
+      background: rgba(79,142,247,0.1);
+      border-color: rgba(79,142,247,0.2);
+    }
+
+    .nav-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--success);
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      background: rgba(74,222,128,0.08);
+      border: 1px solid rgba(74,222,128,0.2);
+    }
+
+    .nav-divider {
+      width: 1px;
+      height: 24px;
+      background: var(--border);
+      margin: 0 0.5rem;
+    }
+
+    /* ─── Buttons ───────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0.5rem 1.2rem;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 600;
+      font-family: inherit;
+      text-decoration: none;
+      transition: all var(--transition);
+      white-space: nowrap;
+      letter-spacing: 0.1px;
+    }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #4f8ef7, #3a72d8);
+      color: #fff;
+      border-color: rgba(79,142,247,0.3);
+      box-shadow: 0 2px 12px rgba(79,142,247,0.3);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #5d9bff, #4f8ef7);
+      box-shadow: 0 4px 20px rgba(79,142,247,0.45);
+      transform: translateY(-1px);
+    }
+
+    .btn-teal {
+      background: linear-gradient(135deg, #2dd4bf, #14b8a6);
+      color: #0b1a18;
+      border-color: rgba(45,212,191,0.3);
+      box-shadow: 0 2px 12px rgba(45,212,191,0.25);
+    }
+    .btn-teal:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(45,212,191,0.4);
+    }
+
+    .btn-danger {
+      background: rgba(248,113,113,0.12);
+      color: var(--danger);
+      border-color: rgba(248,113,113,0.25);
+    }
+    .btn-danger:hover {
+      background: var(--danger-dk);
+      color: #fff;
+      border-color: var(--danger-dk);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text2);
+      border-color: var(--border2);
+    }
+    .btn-ghost:hover {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--border2);
+    }
+
+    .btn-sm {
+      padding: 0.3rem 0.8rem;
+      font-size: 0.8rem;
+    }
+
+    /* ─── Cards ─────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+      transition: border-color var(--transition);
+    }
+    .card:hover { border-color: var(--border2); }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+    }
+    .card-icon.blue { background: rgba(79,142,247,0.15); }
+    .card-icon.teal { background: rgba(45,212,191,0.12); }
+    .card-icon.green { background: rgba(74,222,128,0.12); }
+
+    /* ─── Tables ────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin: 0 -0.25rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text3);
+      padding: 0.6rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 0.85rem 1rem;
+      font-size: 0.875rem;
+      color: var(--text2);
+      border-bottom: 1px solid var(--border);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.025); color: var(--text); }
+
+    /* ─── Badges ────────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0.2rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-green  { background: rgba(74,222,128,0.12);  color: var(--success); border: 1px solid rgba(74,222,128,0.2); }
+    .badge-red    { background: rgba(248,113,113,0.12); color: var(--danger);  border: 1px solid rgba(248,113,113,0.2); }
+    .badge-blue   { background: rgba(79,142,247,0.12);  color: var(--primary); border: 1px solid rgba(79,142,247,0.2); }
+    .badge-gray   { background: rgba(107,120,149,0.15); color: var(--text3);   border: 1px solid rgba(107,120,149,0.2); }
+
+    /* ─── Forms ─────────────────────────────────────────────── */
+    .form-group { margin-bottom: 1.1rem; }
+    .form-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text2);
+      margin-bottom: 0.4rem;
+      letter-spacing: 0.1px;
+    }
+    .form-control,
+    form input:not([type=submit]):not([type=checkbox]):not([type=radio]),
+    form select,
+    form textarea {
+      width: 100%;
+      padding: 0.6rem 0.9rem;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: all var(--transition);
+      outline: none;
+      -webkit-appearance: none;
+    }
+    form input:not([type=submit]):focus,
+    form select:focus,
+    form textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    form input:not([type=submit])::placeholder { color: var(--text3); }
+    .form-help {
+      font-size: 0.78rem;
+      color: var(--text3);
+      margin-top: 0.3rem;
+    }
+    .errorlist {
+      list-style: none;
+      margin-top: 0.35rem;
+    }
+    .errorlist li {
+      font-size: 0.8rem;
+      color: var(--danger);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .errorlist li::before { content: "⚠ "; }
+
+    /* Django's auto-rendered field wrappers */
+    form .field { margin-bottom: 1.1rem; }
+    form .field label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text2);
+      margin-bottom: 0.4rem;
+    }
+
+    /* ─── Alerts / Messages ──────────────────────────────────── */
+    .messages { margin-bottom: 1.25rem; }
+    .alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      margin-bottom: 0.6rem;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .alert-success { background: rgba(74,222,128,0.1);  border: 1px solid rgba(74,222,128,0.25); color: #86efac; }
+    .alert-error   { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.25); color: #fca5a5; }
+    .alert-info    { background: rgba(79,142,247,0.1);  border: 1px solid rgba(79,142,247,0.25);  color: #93c5fd; }
+    .alert-warning { background: rgba(251,191,36,0.1);  border: 1px solid rgba(251,191,36,0.25);  color: #fde68a; }
+
+    /* ─── Layout ────────────────────────────────────────────── */
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    .page-header {
+      margin-bottom: 2rem;
+    }
+    .page-header h1 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+    .page-header p {
+      color: var(--text2);
+      margin-top: 0.35rem;
+      font-size: 0.9rem;
+    }
+
+    /* ─── Stat Cards ────────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      transition: all var(--transition);
+    }
+    .stat-card:hover {
+      border-color: var(--border2);
+      transform: translateY(-2px);
+    }
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--text);
+    }
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--text3);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .stat-icon {
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ─── Doctor Cards ──────────────────────────────────────── */
+    .doctor-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .doctor-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: all var(--transition);
+    }
+    .doctor-card:hover { border-color: rgba(79,142,247,0.3); box-shadow: 0 4px 20px rgba(79,142,247,0.1); }
+
+    .doctor-card-header {
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+    .doctor-info { display: flex; align-items: center; gap: 12px; }
+    .doctor-avatar {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--teal));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+    }
+    .doctor-name { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+    .doctor-meta { font-size: 0.78rem; color: var(--text3); margin-top: 1px; }
+
+    .doctor-card-body { padding: 1rem 1.5rem; }
+
+    /* ─── Slot Pills ────────────────────────────────────────── */
+    .slot-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      padding: 0.5rem 0;
+    }
+    .slot-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0.5rem 1rem;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      font-size: 0.82rem;
+      transition: all var(--transition);
+    }
+    .slot-time { font-weight: 600; color: var(--text); }
+    .slot-pill form { margin: 0; }
+    .slot-pill .btn { padding: 0.25rem 0.65rem; font-size: 0.75rem; }
+
+    /* ─── Appointment rows ──────────────────────────────────── */
+    .appt-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      border-radius: var(--radius-sm);
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      margin-bottom: 0.6rem;
+      transition: all var(--transition);
+    }
+    .appt-row:hover { border-color: var(--border2); }
+    .appt-doctor { font-weight: 600; color: var(--text); font-size: 0.9rem; }
+    .appt-time   { font-size: 0.8rem; color: var(--text3); margin-top: 2px; }
+    .appt-date   { font-size: 0.82rem; color: var(--primary); font-weight: 600; }
+
+    /* ─── Auth pages ────────────────────────────────────────── */
+    .auth-wrap {
+      min-height: calc(100vh - 64px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+    }
+    .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.5);
+    }
+    .auth-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 2rem;
+    }
+    .auth-logo img { width: 40px; height: 40px; border-radius: 10px; }
+    .auth-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.3rem; color: var(--text); }
+    .auth-subtitle { font-size: 0.85rem; color: var(--text3); margin-bottom: 1.75rem; }
+    .auth-footer { text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: var(--text3); }
+    .auth-footer a { color: var(--primary); text-decoration: none; font-weight: 500; }
+    .auth-footer a:hover { text-decoration: underline; }
+
+    /* ─── Misc ──────────────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: var(--text3);
+    }
+    .empty-state .emoji { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .empty-state p { font-size: 0.9rem; }
+
+    a { color: var(--primary); }
+    a:hover { text-decoration: underline; }
+
+    .text-muted  { color: var(--text3); }
+    .text-sm     { font-size: 0.85rem; }
+    .mt-1  { margin-top: 0.5rem; }
+    .mt-2  { margin-top: 1rem; }
+    .flex  { display: flex; }
+    .gap-2 { gap: 0.5rem; }
+    .items-center { align-items: center; }
+
+    @media (max-width: 640px) {
+      .navbar { padding: 0 1rem; }
+      .container { padding: 1.25rem 1rem; }
+      .card { padding: 1.25rem; }
+      .auth-card { padding: 1.75rem 1.25rem; }
+      .navbar-nav .nav-link span { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ── Navbar ── -->
+  <nav class="navbar">
+    <a href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}/{% endif %}" class="navbar-brand">
+      <img src="{% static 'core/logo.png' %}" alt="MediFlow Logo">
+      <div>
+        <div class="brand-name">MediFlow</div>
+        <div class="brand-tagline">Smart Healthcare Scheduling</div>
+      </div>
+    </a>
+
+    <div class="navbar-nav">
+      {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}" class="nav-link">
+          <span>Dashboard</span>
+        </a>
+        {% if user.is_doctor %}
+          <a href="{% url 'slot_list' %}" class="nav-link">
+            <span>My Slots</span>
+          </a>
+        {% endif %}
+
+        <div class="nav-divider"></div>
+
+        {% if user.calendar_token %}
+          <span class="nav-badge">📅 Calendar On</span>
+          <form method="post" action="{% url 'google_calendar_disconnect' %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-ghost btn-sm" style="margin-left:0.25rem;">Disconnect</button>
+          </form>
+        {% else %}
+          <a href="{% url 'google_calendar_connect' %}" class="btn btn-ghost btn-sm" style="gap:5px;">
+            📅 <span>Connect Calendar</span>
+          </a>
+        {% endif %}
+
+        <div class="nav-divider"></div>
+
+        <a href="{% url 'logout' %}" class="nav-link" style="color:var(--danger);">
+          Logout
+        </a>
+        <span style="font-size:0.8rem; color:var(--text3); padding: 0 0.5rem;">{{ user.username }}</span>
+      {% else %}
+        <a href="{% url 'login' %}" class="nav-link">Login</a>
+        <a href="{% url 'signup_patient' %}" class="btn btn-ghost btn-sm">Patient Sign Up</a>
+        <a href="{% url 'signup_doctor' %}" class="btn btn-primary btn-sm">Doctor Sign Up</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- ── Main ── -->
+  <main class="container">
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">
+            {% if message.tags == 'success' %}✓{% elif message.tags == 'error' %}✕{% elif message.tags == 'info' %}ℹ{% else %}⚠{% endif %}
+            <span>{{ message|safe }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer style="text-align:center; padding:2rem; color:var(--text3); font-size:0.78rem; border-top:1px solid var(--border); margin-top:2rem;">
+    © 2026 MediFlow · Intelligent Healthcare Scheduling
+  </footer>
+</body>
+</html>

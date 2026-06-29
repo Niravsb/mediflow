@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Doctor Dashboard — MediFlow{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+  <div>
+    <h1>Good day, Dr. {{ user.last_name }} 👋</h1>
+    <p>Manage your availability and monitor your scheduled appointments</p>
+  </div>
+  <div style="display:flex; gap:.6rem;">
+    <a class="btn btn-primary" href="{% url 'slot_create' %}">+ Add Slot</a>
+    <a class="btn btn-ghost" href="{% url 'slot_list' %}">View All Slots</a>
+  </div>
+</div>
+
+<!-- Stats row -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon">📅</div>
+    <div class="stat-value">{{ total_slots }}</div>
+    <div class="stat-label">Total Slots</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">✅</div>
+    <div class="stat-value" style="color:var(--success);">{{ booked_count }}</div>
+    <div class="stat-label">Booked</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🟢</div>
+    <div class="stat-value" style="color:var(--primary);">{{ available_count }}</div>
+    <div class="stat-label">Available</div>
+  </div>
+  <div class="stat-card" style="background: linear-gradient(135deg,rgba(79,142,247,0.08),rgba(45,212,191,0.06)); border-color:rgba(79,142,247,0.2);">
+    <div class="stat-icon">{% if user.calendar_token %}📅{% else %}🔗{% endif %}</div>
+    <div class="stat-value" style="font-size:1rem; padding-top:0.4rem;">
+      {% if user.calendar_token %}
+        <span style="color:var(--success);">Connected</span>
+      {% else %}
+        <a href="{% url 'google_calendar_connect' %}" style="color:var(--primary); font-size:.85rem; font-weight:600;">Connect →</a>
+      {% endif %}
+    </div>
+    <div class="stat-label">Google Calendar</div>
+  </div>
+</div>
+
+<!-- Booked Appointments Section -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">
+      <div class="card-icon teal">🗓</div>
+      Booked Appointments
+    </div>
+    <span class="badge badge-blue">{{ booked_count }} scheduled</span>
+  </div>
+
+  {% if booked_appointments %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Reason / Note</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for appt in booked_appointments %}
+          <tr>
+            <td style="font-weight:600; color:var(--text);">
+              {{ appt.patient.get_full_name_or_username }}
+              <br><span style="font-size:0.75rem; color:var(--text3);">@{{ appt.patient.username }}</span>
+            </td>
+            <td>{{ appt.slot.date }}</td>
+            <td>{{ appt.slot.start_time|time:"H:i" }} – {{ appt.slot.end_time|time:"H:i" }}</td>
+            <td style="font-style:italic; max-width: 300px; white-space: normal; word-break: break-word;">
+              {% if appt.notes %}
+                {{ appt.notes }}
+              {% else %}
+                <span class="text-muted text-sm">(No notes provided)</span>
+              {% endif %}
+            </td>
+            <td>
+              <form method="post" action="{% url 'cancel_appointment' appt.pk %}" onsubmit="return confirm('Are you sure you want to cancel this appointment?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm">Cancel Appt</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="emoji">🩺</div>
+      <p>No appointments booked yet. Your upcoming patient visits will show up here.</p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Slots Table -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">
+      <div class="card-icon blue">📋</div>
+      Your Availability Slots
+    </div>
+    <a class="btn btn-primary btn-sm" href="{% url 'slot_create' %}">+ New Slot</a>
+  </div>
+
+  {% if slots %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Duration</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for slot in slots %}
+          <tr>
+            <td style="font-weight:600; color:var(--text);">{{ slot.date }}</td>
+            <td>{{ slot.start_time|time:"H:i" }}</td>
+            <td>{{ slot.end_time|time:"H:i" }}</td>
+            <td class="text-muted text-sm">60 min</td>
+            <td>
+              {% if slot.is_booked %}
+                <span class="badge badge-red">● Booked</span>
+              {% else %}
+                <span class="badge badge-green">● Available</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if not slot.is_booked %}
+                <form method="post" action="{% url 'slot_delete' slot.pk %}" style="display:inline;" onsubmit="return confirm('Delete this slot?')">
+                  {% csrf_token %}
+                  <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+                </form>
+              {% else %}
+                <span class="text-muted text-sm">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="emoji">📭</div>
+      <p>No slots yet. <a href="{% url 'slot_create' %}">Create your first availability slot.</a></p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
