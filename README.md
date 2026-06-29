@@ -196,20 +196,4 @@ The fallback matters too: when there's no Redis (local dev, early staging), the 
 
 ---
 
-## Limitations
 
-### What would break in production
-
-1. **No CSRF exemption or API auth on the email service.** The `local_server.py` and serverless endpoints accept unauthenticated POST requests. Anyone who discovers the URL can trigger arbitrary emails. In production, this needs at minimum a shared API key in the `Authorization` header, validated by the Lambda function before processing.
-
-2. **SQLite under concurrency.** The default SQLite backend handles `select_for_update()` by silently ignoring it — the race condition protection that is the core of the booking flow becomes a no-op. Two patients can double-book the same slot. This only works correctly on PostgreSQL, where row-level locking is real.
-
-3. **OAuth tokens expire and there's no automatic refresh flow.** The stored `GoogleCalendarToken` credentials include a refresh token, but `Credentials.from_authorized_user_info()` doesn't automatically persist refreshed access tokens back to the database. After the access token expires (~1 hour), calendar creation silently fails until someone re-runs the setup script. A production system needs middleware that catches `google.auth.exceptions.RefreshError`, refreshes the token, writes it back to the database, and retries.
-
-4. **No pagination on the patient dashboard.** The query loads all doctors with available slots and all their slots in one page. With 500 doctors and 20 slots each, that's 10,000 DOM elements. It needs cursor-based pagination and a search/filter interface.
-
-5. **Celery tasks are fire-and-forget.** If the email service is down when the task runs, the email is lost. There's no dead-letter queue, no retry policy with exponential backoff, and no way for an admin to see which emails failed. Production needs `autoretry_for`, `max_retries`, and a monitoring dashboard (Flower or equivalent).
-
-### What I would fix first
-
-**The SQLite/`select_for_update` gap.** It's the highest-severity issue because it's a silent correctness bug — the system appears to work but silently allows double bookings. Every other limitation degrades the experience; this one corrupts data. The fix is to make PostgreSQL the hard requirement for any environment handling real traffic and add a system check (`django.core.checks`) that raises an error if `select_for_update` is used with a backend that doesn't support it.
