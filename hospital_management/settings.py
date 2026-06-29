@@ -93,6 +93,8 @@ CACHES = {
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_CACHE_ALIAS = 'default'
 SESSION_COOKIE_AGE = 86400  # 24 hours
+SESSION_COOKIE_NAME = 'mediflow_sessionid'
+CSRF_COOKIE_NAME = 'mediflow_csrftoken'
 
 # ── Celery (uses Redis db 0) ────────────────────────────────────────────────
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
